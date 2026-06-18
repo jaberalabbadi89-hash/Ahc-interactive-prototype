@@ -634,6 +634,73 @@ function viewFicha(oaId) {
             // Reset state indices
             currentCardIndex = 0;
             updateDialogCardData();
+        } else if (oaId === 'OA-02') {
+            // Render high-performance interactive Drag and Drop component
+            modalOaBody.innerHTML = `
+                <p style="margin-bottom: 15px; color: var(--ahc-color-primary-green); font-weight: 700;">
+                    ${currentLanguage === 'es' ? 'Tipo de actividad' : 'Tipus d\'activitat'}: ${data.type}
+                </p>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 15px;">
+                    ${currentLanguage === 'es' 
+                        ? 'Clasifica los elementos arrastrándolos al alcance correcto (Alcance 1, 2 o 3):' 
+                        : 'Classifica els elements arrossegant-los a l\'abast correcte (Abast 1, 2 o 3):'}
+                </p>
+                
+                <div class="ahc-drag-drop">
+                    <!-- Draggable Elements Source Panel -->
+                    <div class="ahc-drag-drop__draggables" id="ahc-draggables-container">
+                        <!-- Filled by JS -->
+                    </div>
+                    
+                    <!-- Dropzones Grid -->
+                    <div class="ahc-drag-drop__dropzones">
+                        <!-- Zone 1: Scope 1 -->
+                        <div class="ahc-dropzone" id="zone-scope-1">
+                            <div class="ahc-dropzone__title">
+                                ${currentLanguage === 'es' ? 'Alcance 1 (Scope 1)' : 'Abast 1 (Scope 1)'}
+                            </div>
+                            <div class="ahc-dropzone__subtitle">
+                                ${currentLanguage === 'es' ? 'Emisiones directas (combustibles)' : 'Emissions directes (combustibles)'}
+                            </div>
+                            <div class="ahc-dropzone__list" id="list-scope-1"></div>
+                        </div>
+                        
+                        <!-- Zone 2: Scope 2 -->
+                        <div class="ahc-dropzone" id="zone-scope-2">
+                            <div class="ahc-dropzone__title">
+                                ${currentLanguage === 'es' ? 'Alcance 2 (Scope 2)' : 'Abast 2 (Scope 2)'}
+                            </div>
+                            <div class="ahc-dropzone__subtitle">
+                                ${currentLanguage === 'es' ? 'Emisiones indirectas por energía comprada' : 'Emissions indirectes per energia comprada'}
+                            </div>
+                            <div class="ahc-dropzone__list" id="list-scope-2"></div>
+                        </div>
+                        
+                        <!-- Zone 3: Scope 3 -->
+                        <div class="ahc-dropzone" id="zone-scope-3">
+                            <div class="ahc-dropzone__title">
+                                ${currentLanguage === 'es' ? 'Alcance 3 (Scope 3)' : 'Abast 3 (Scope 3)'}
+                            </div>
+                            <div class="ahc-dropzone__subtitle">
+                                ${currentLanguage === 'es' ? 'Cadena de valor y viajes corporativos' : 'Cadena de valor i viatges corporatius'}
+                            </div>
+                            <div class="ahc-dropzone__list" id="list-scope-3"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Controls and Evaluation Score -->
+                    <div class="ahc-drag-drop__actions">
+                        <button class="btn-card ahc-drag-drop__btn" onclick="resetDragAndDrop()">
+                            ${currentLanguage === 'es' ? 'Reiniciar' : 'Reiniciar'}
+                        </button>
+                        <span class="ahc-drag-drop__score" id="ahc-drag-score"></span>
+                        <button class="btn-card ahc-drag-drop__btn" onclick="checkDragAndDropAnswers()">
+                            ${currentLanguage === 'es' ? 'Comprobar' : 'Comprovar'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            initDragAndDropData();
         } else {
             // Render default technical sheet
             modalOaBody.innerHTML = `
@@ -728,4 +795,153 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+// Global Drag and Drop state parameters
+const dragItems = {
+    es: [
+        { id: "drag-1", text: "Vehículos de la empresa (combustión)", correctZone: "list-scope-1" },
+        { id: "drag-2", text: "Factura de electricidad de la sede", correctZone: "list-scope-2" },
+        { id: "drag-3", text: "Vuelos de negocios de empleados", correctZone: "list-scope-3" },
+        { id: "drag-4", text: "Residuos de papel y plástico", correctZone: "list-scope-3" },
+        { id: "drag-5", text: "Gas natural para la calefacción", correctZone: "list-scope-1" },
+        { id: "drag-6", text: "Compra de ordenadores nuevos", correctZone: "list-scope-3" }
+    ],
+    ca: [
+        { id: "drag-1", text: "Vehicles de l'empresa (combustió)", correctZone: "list-scope-1" },
+        { id: "drag-2", text: "Factura d'electricitat de la seu", correctZone: "list-scope-2" },
+        { id: "drag-3", text: "Vols de negocis d'empleats", correctZone: "list-scope-3" },
+        { id: "drag-4", text: "Residus de paper i plàstic", correctZone: "list-scope-3" },
+        { id: "drag-5", text: "Gas natural per a la calefacció", correctZone: "list-scope-1" },
+        { id: "drag-6", text: "Compra d'ordinadors nous", correctZone: "list-scope-3" }
+    ]
+};
+
+function initDragAndDropData() {
+    const container = document.getElementById('ahc-draggables-container');
+    const scoreText = document.getElementById('ahc-drag-score');
+    
+    if (container && scoreText) {
+        container.innerHTML = '';
+        scoreText.textContent = '';
+        
+        const items = dragItems[currentLanguage];
+        // Shuffle elements randomly
+        const shuffledItems = [...items].sort(() => Math.random() - 0.5);
+        
+        shuffledItems.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'ahc-draggable';
+            div.id = item.id;
+            div.draggable = true;
+            div.textContent = item.text;
+            
+            // Set Drag event listeners
+            div.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', div.id);
+                div.classList.add('ahc-draggable--dragging');
+            });
+            
+            div.addEventListener('dragend', () => {
+                div.classList.remove('ahc-draggable--dragging');
+            });
+            
+            container.appendChild(div);
+        });
+        
+        bindDropzoneListeners();
+    }
+}
+
+function bindDropzoneListeners() {
+    const droplists = document.querySelectorAll('.ahc-dropzone__list');
+    const container = document.getElementById('ahc-draggables-container');
+    
+    if (container) {
+        container.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+        container.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const id = e.dataTransfer.getData('text/plain');
+            const draggable = document.getElementById(id);
+            if (draggable) {
+                draggable.className = 'ahc-draggable';
+                container.appendChild(draggable);
+            }
+        });
+    }
+    
+    droplists.forEach(list => {
+        const zone = list.closest('.ahc-dropzone');
+        
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            zone.classList.add('ahc-dropzone--over');
+        });
+        
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('ahc-dropzone--over');
+        });
+        
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('ahc-dropzone--over');
+            const id = e.dataTransfer.getData('text/plain');
+            const draggable = document.getElementById(id);
+            if (draggable) {
+                draggable.className = 'ahc-draggable';
+                list.appendChild(draggable);
+            }
+        });
+    });
+}
+
+function checkDragAndDropAnswers() {
+    const items = dragItems[currentLanguage];
+    let correctCount = 0;
+    let totalItems = items.length;
+    
+    items.forEach(item => {
+        const element = document.getElementById(item.id);
+        if (element) {
+            const parentList = element.parentElement;
+            if (parentList) {
+                const parentId = parentList.id;
+                
+                if (parentId === item.correctZone) {
+                    correctCount++;
+                    element.classList.add('ahc-draggable--correct');
+                    element.classList.remove('ahc-draggable--incorrect');
+                } else if (parentId === 'ahc-draggables-container') {
+                    element.className = 'ahc-draggable';
+                } else {
+                    element.classList.add('ahc-draggable--incorrect');
+                    element.classList.remove('ahc-draggable--correct');
+                }
+            }
+        }
+    });
+    
+    const scoreText = document.getElementById('ahc-drag-score');
+    if (scoreText) {
+        scoreText.textContent = `${currentLanguage === 'es' ? 'Puntuación' : 'Puntuació'}: ${correctCount} / ${totalItems}`;
+    }
+}
+
+function resetDragAndDrop() {
+    const container = document.getElementById('ahc-draggables-container');
+    const lists = document.querySelectorAll('.ahc-dropzone__list');
+    
+    if (container) {
+        lists.forEach(list => {
+            const draggables = list.querySelectorAll('.ahc-draggable');
+            draggables.forEach(draggable => {
+                draggable.className = 'ahc-draggable';
+                container.appendChild(draggable);
+            });
+        });
+        
+        initDragAndDropData();
+    }
+}
 

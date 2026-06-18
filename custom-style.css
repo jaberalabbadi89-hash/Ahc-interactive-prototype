@@ -451,3 +451,135 @@ dialog.modal-overlay::backdrop {
     user-select: none;
 }
 
+/* ==========================================================================
+   DRAG AND DROP COMPONENT (BEM: .ahc-drag-drop)
+   ========================================================================== */
+.ahc-drag-drop {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* Panel of draggable elements */
+.ahc-drag-drop__draggables {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 15px;
+    background: #f8fafc;
+    border: 1px dashed var(--ahc-border-card);
+    border-radius: 12px;
+    min-height: 90px;
+    justify-content: center;
+    align-items: center;
+}
+
+.ahc-draggable {
+    background: #ffffff;
+    border: 1.5px solid var(--ahc-border-card);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: grab;
+    user-select: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.ahc-draggable:active {
+    cursor: grabbing;
+}
+
+.ahc-draggable--dragging {
+    opacity: 0.4;
+    transform: scale(0.98);
+}
+
+/* Correct / Incorrect Feedback Modifiers */
+.ahc-draggable--correct {
+    border-color: #62a144 !important;
+    background-color: #f0f7ed !important;
+    color: #4d8235 !important;
+}
+
+.ahc-draggable--incorrect {
+    border-color: #cf2e2e !important;
+    background-color: rgba(207, 46, 46, 0.06) !important;
+    color: #cf2e2e !important;
+}
+
+/* Dropzones panel layout */
+.ahc-drag-drop__dropzones {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+@media (max-width: 768px) {
+    .ahc-drag-drop__dropzones {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ahc-dropzone {
+    background: #ffffff;
+    border: 2px dashed #e2e8f0;
+    border-radius: 12px;
+    padding: 15px;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.25s ease;
+}
+
+.ahc-dropzone--over {
+    border-color: var(--ahc-color-primary-green);
+    background-color: #f0f7ed;
+}
+
+.ahc-dropzone__title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ahc-color-dark);
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+.ahc-dropzone__subtitle {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 12px;
+    text-align: center;
+    line-height: 1.3;
+}
+
+.ahc-dropzone__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-grow: 1;
+    min-height: 100px;
+    justify-content: flex-start;
+}
+
+/* Actions panel */
+.ahc-drag-drop__actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.ahc-drag-drop__score {
+    font-weight: 700;
+    color: var(--ahc-color-dark);
+    font-size: 0.95rem;
+}
+
+
