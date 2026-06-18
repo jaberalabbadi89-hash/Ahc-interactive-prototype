@@ -193,55 +193,104 @@
    MOODLE / EDWISER DASHBOARD NOISE CLEANUP OVERRIDES
    ========================================================================== */
 
-/* Hide default distracting Moodle Blocks */
-#block-region-side-pre, 
-#block-region-side-post,
-.block_online_users,
+/* Hide default distracting Moodle Blocks & Sidebars */
 .block_calendar_month,
+.block_calendar_upcoming,
+.block_online_users,
 .block_private_files,
-.block_recent_activity {
+.block_recent_activity,
+.block_recent_blog_posts,
+.block_tags,
+#block-region-side-pre, 
+#block-region-side-post {
     display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 
 /* Widen dashboard content area after removing blocks */
-#region-main.has-blocks {
+#region-main.has-blocks,
+#region-main-box,
+.has-blocks #region-main {
     width: 100% !important;
     max-width: 100% !important;
     flex: 0 0 100% !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    border-right: none !important;
+    border-left: none !important;
 }
 
 /* Modernizing course list cards */
 .cocurse-card, 
 .dashboard-card,
-.edwiser-course-card {
+.edwiser-course-card,
+.coursebox,
+.coc-course-item {
+    background: #ffffff !important;
     border: 1px solid rgba(226, 232, 240, 0.8) !important;
-    border-radius: 12px !important;
+    border-radius: 14px !important;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02) !important;
-    transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                border-color 0.3s ease !important;
 }
 
-.cocurse-card:hover {
-    transform: translateY(-3px) !important;
-    box-shadow: 0 10px 15px -3px rgba(98, 161, 68, 0.1) !important;
-    border-color: var(--ahc-color-primary-green) !important;
+.cocurse-card:hover,
+.dashboard-card:hover,
+.edwiser-course-card:hover,
+.coursebox:hover,
+.coc-course-item:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 12px 20px -3px rgba(98, 161, 68, 0.08), 
+                0 4px 6px -2px rgba(98, 161, 68, 0.03) !important;
+    border-color: rgba(98, 161, 68, 0.3) !important;
 }
 
-/* Unifying Moodle buttons to AHC Brand Identity */
+/* Unifying links and Moodle buttons to AHC Brand Identity */
+a, 
+.nav-link, 
+.breadcrumb-item a {
+    color: var(--ahc-color-primary-green);
+}
+
+a:hover, 
+.nav-link:hover, 
+.breadcrumb-item a:hover {
+    color: var(--ahc-color-green-hover);
+    text-decoration: none;
+}
+
+/* Course Completion Badges & Progress Bars */
+.badge-info, 
+.progress-bar, 
+.bg-info {
+    background-color: var(--ahc-color-primary-green) !important;
+}
+
 .btn-primary, 
 .btn-secondary.active, 
 .btn-default:hover,
-#page-login-index #loginbtn {
+#page-login-index #loginbtn,
+.edwiser-primary-btn {
     background-color: var(--ahc-color-primary-green) !important;
     border-color: var(--ahc-color-primary-green) !important;
     color: #ffffff !important;
     border-radius: 6px !important;
     font-weight: 700 !important;
+    padding: 10px 20px !important;
     transition: var(--ahc-transition-smooth) !important;
 }
 
-.btn-primary:hover {
+.btn-primary:hover,
+#page-login-index #loginbtn:hover {
     background-color: var(--ahc-color-green-hover) !important;
     border-color: var(--ahc-color-green-hover) !important;
+    box-shadow: 0 4px 12px rgba(98, 161, 68, 0.25) !important;
 }
 
 /* ==========================================================================
