@@ -1,40 +1,137 @@
-/* ---------------------------------------------------
-   تخصيص مظهر أنشطة H5P لتتطابق مع هوية AHC 
---------------------------------------------------- */
+/* ==========================================================================
+   AHC BRAND IDENTITY OVERRIDES FOR H5P COMPONENTS
+   ========================================================================== */
 
-/* 1. إزالة الحدود وجعل الخلفية شفافة ومندمجة مع المنصة */
+/* 1. Base Containers Reset */
 .h5p-container, 
 .h5p-iframe-wrapper, 
 .h5p-content {
     background-color: transparent !important; 
     border: none !important;
     box-shadow: none !important;
-    font-family: 'Cairo', 'Helvetica Neue', Arial, sans-serif !important; /* توحيد الخط مع الموقع والمنصة */
+    font-family: 'Outfit', 'Inter', 'Cairo', Arial, sans-serif !important;
 }
 
-/* 2. تخصيص ألوان الأزرار الرئيسية داخل الأنشطة (مثل فيديو تفاعلي، خيارات متعددة) */
+/* 2. Joubel UI Buttons (Universal Check / Retry / Next / CTA Buttons) */
 .h5p-joubelui-button,
 .h5p-question-check-answer,
-.h5p-interactive-video-cta-button {
-    background-color: #62a144 !important; /* الأخضر الرسمي للجمعية */
+.h5p-question-try-again,
+.h5p-question-show-solution,
+.h5p-interactive-video-cta-button,
+.h5p-video-action-button,
+.h5p-joubelui-score-bar-button {
+    background: #62a144 !important;
     color: #ffffff !important;
     border: none !important;
-    border-radius: 6px !important; /* زوايا ناعمة مطابقة للموقع */
-    text-transform: uppercase;
-    font-weight: 600 !important;
-    transition: background-color 0.3s ease;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+    padding: 8px 18px !important;
+    box-shadow: 0 4px 6px rgba(98, 161, 68, 0.15) !important;
+    text-shadow: none !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
 }
 
-/* تأثير التمرير (Hover) على الأزرار */
 .h5p-joubelui-button:hover,
-.h5p-question-check-answer:hover {
-    background-color: #4d8235 !important; /* درجة أغمق للتفاعل */
-    box-shadow: 0 4px 10px rgba(98, 161, 68, 0.3) !important;
+.h5p-question-check-answer:hover,
+.h5p-question-try-again:hover,
+.h5p-question-show-solution:hover,
+.h5p-interactive-video-cta-button:hover,
+.h5p-video-action-button:hover,
+.h5p-joubelui-score-bar-button:hover {
+    background: #4d8235 !important;
+    box-shadow: 0 6px 15px rgba(98, 161, 68, 0.3) !important;
+    transform: translateY(-1px) !important;
 }
 
-/* 3. تخصيص ألوان رسائل التغذية الراجعة (Feedback) */
+.h5p-joubelui-button:active,
+.h5p-question-check-answer:active {
+    transform: translateY(1px) !important;
+}
+
+/* 3. Dialog Cards Styles Customization */
+.h5p-dialogcards .h5p-card-wrapper {
+    background: linear-gradient(135deg, #ffffff 0%, #f0f7ed 100%) !important;
+    border: 1px solid rgba(98, 161, 68, 0.2) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04) !important;
+}
+
+.h5p-dialogcards .h5p-card-turn-button {
+    background: #62a144 !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
+}
+.h5p-dialogcards .h5p-card-turn-button:hover {
+    background: #4d8235 !important;
+}
+
+/* 4. Drag & Drop Customization */
+.h5p-drag-and-drop .h5p-draggable {
+    background: #ffffff !important;
+    border: 1.5px solid rgba(226, 232, 240, 0.9) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) !important;
+}
+
+.h5p-drag-and-drop .h5p-dropzone-correct,
+.h5p-drag-and-drop .h5p-draggable-correct {
+    border-color: #62a144 !important;
+    background-color: #f0f7ed !important;
+    color: #4d8235 !important;
+}
+
+.h5p-drag-and-drop .h5p-dropzone-incorrect,
+.h5p-drag-and-drop .h5p-draggable-incorrect {
+    border-color: #cf2e2e !important;
+    background-color: rgba(207, 46, 46, 0.06) !important;
+    color: #cf2e2e !important;
+}
+
+/* 5. Video Player Elements & Timelines */
+.h5p-video-play-button, 
+.h5p-video-control.h5p-play {
+    color: #62a144 !important;
+}
+
+.h5p-interactive-video .h5p-control-bar {
+    background-color: #0f172a !important;
+}
+
+.h5p-interactive-video .h5p-slider-playbar {
+    background: #62a144 !important;
+}
+
+.h5p-interactive-video .h5p-slider-handle {
+    background: #ffffff !important;
+    border: 2px solid #62a144 !important;
+}
+
+/* 6. Image Hotspots Icons & Pulsing Effects */
+.h5p-image-hotspot-button {
+    background-color: #62a144 !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 4px 10px rgba(98, 161, 68, 0.4) !important;
+}
+
+.h5p-image-hotspot-button:hover {
+    background-color: #4d8235 !important;
+}
+
+.h5p-image-hotspots-container .h5p-image-hotspot-popup {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(98, 161, 68, 0.2) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* 7. Message Box / Feedback Elements */
 .h5p-joubelui-message-box {
-    background-color: #f0f7ed !important; /* خلفية خضراء باهتة ومريحة للعين */
+    background-color: #f0f7ed !important;
     border-left: 4px solid #62a144 !important;
-    color: #333333 !important;
+    color: #1e293b !important;
+    border-radius: 0 8px 8px 0 !important;
 }
