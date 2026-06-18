@@ -701,6 +701,48 @@ function viewFicha(oaId) {
                 </div>
             `;
             initDragAndDropData();
+        } else if (oaId === 'OA-03') {
+            // Render high-performance interactive Video Player simulation
+            modalOaBody.innerHTML = `
+                <p style="margin-bottom: 15px; color: var(--ahc-color-primary-green); font-weight: 700;">
+                    ${currentLanguage === 'es' ? 'Tipo de actividad' : 'Tipus d\'activitat'}: ${data.type}
+                </p>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 15px;">
+                    ${currentLanguage === 'es' 
+                        ? 'Simulación interactiva del video explicativo. Responde correctamente a las preguntas para evitar penalizaciones de tiempo.' 
+                        : 'Simulació interactiva del vídeo explicatiu. Respon correctament a les preguntes per evitar penalitzacions de temps.'}
+                </p>
+                
+                <div class="ahc-player" id="ahc-video-player">
+                    <div class="ahc-player__screen" id="ahc-player-screen">
+                        <div class="ahc-player__video-mock">
+                            <div class="ahc-player__play-icon" id="ahc-video-play-icon">▶</div>
+                            <div class="ahc-player__time-overlay" id="ahc-video-time">00:00</div>
+                            <div class="ahc-player__scene-label" id="ahc-video-scene">
+                                ${currentLanguage === 'es' ? 'Explicación Inicial' : 'Explicació Inicial'}
+                            </div>
+                        </div>
+                        
+                        <!-- Question overlay card -->
+                        <div class="ahc-player__overlay ahc-player__overlay--hidden" id="ahc-player-overlay">
+                            <div class="ahc-player__question-card">
+                                <div class="ahc-player__question-title" id="ahc-video-question"></div>
+                                <div class="ahc-player__options" id="ahc-video-options"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ahc-player__controls">
+                        <button class="btn-card ahc-player__btn-play" id="ahc-video-btn-play" onclick="toggleVideoPlayback()">Play</button>
+                        <div class="ahc-player__timeline">
+                            <div class="ahc-player__progress-bar">
+                                <div class="ahc-player__progress" id="ahc-video-progress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            initVideoPlayerState();
         } else {
             // Render default technical sheet
             modalOaBody.innerHTML = `
@@ -720,6 +762,11 @@ function closeModal() {
     const modal = document.getElementById('ficha-modal');
     modal.close(); // Native close API call
     document.body.style.overflow = 'auto'; // Restore normal scrolling
+    
+    // Stop simulated video player if running
+    if (typeof stopVideoPlayback === 'function') {
+        stopVideoPlayback();
+    }
 }
 
 // Global Dialog Cards state parameters
@@ -942,6 +989,231 @@ function resetDragAndDrop() {
         });
         
         initDragAndDropData();
+    }
+}
+
+// ==========================================================================
+// INTERACTIVE VIDEO STATE MANAGEMENT & LOGIC (OA-03)
+// ==========================================================================
+
+let videoPlaybackTimer = null;
+let videoCurrentTime = 0; // Simulated time in seconds
+const videoDuration = 420; // 7 minutes total duration
+let isVideoPlaying = false;
+let triggeredStops = {}; // Tracks which timestamp questions have been answered
+
+const videoStopQuestions = {
+    135: { // 02:15
+        type: "options",
+        scene: { es: "Consumo Eléctrico", ca: "Consum Elèctric" },
+        q: {
+            es: "¿A qué alcance corresponden las emisiones por consumo eléctrico organizacional?",
+            ca: "A quin abast corresponen les emissions per consum elèctric organitzacional?"
+        },
+        options: {
+            es: [
+                { text: "Alcance 1 (Emisiones Directas)", correct: false },
+                { text: "Alcance 2 (Emisiones Indirectas por Energía Adquirida)", correct: true },
+                { text: "Alcance 3 (Otras Emisiones Indirectas)", correct: false }
+            ],
+            ca: [
+                { text: "Abast 1 (Emissions Directes)", correct: false },
+                { text: "Abast 2 (Emissions Indirectes per Energia Adquirida)", correct: true },
+                { text: "Abast 3 (Altres Emissions Indirectes)", correct: false }
+            ]
+        },
+        rewindTime: 90 // Go back to 01:30 (90 seconds)
+    },
+    270: { // 04:30
+        type: "boolean",
+        scene: { es: "Combustible de Flota", ca: "Combustible de Flota" },
+        q: {
+            es: "El combustible de los vehículos propios de la empresa pertenece al Alcance 3. ¿Verdadero o Falso?",
+            ca: "El combustible dels vehicles propis de l'empresa pertany a l'Abast 3. Cert o Fals?"
+        },
+        options: {
+            es: [
+                { text: "Verdadero", correct: false },
+                { text: "Falso (Pertenece al Alcance 1)", correct: true }
+            ],
+            ca: [
+                { text: "Cert", correct: false },
+                { text: "Fals (Pertany a l'Abast 1)", correct: true }
+            ]
+        },
+        rewindTime: 225 // Go back to 03:45 (225 seconds)
+    },
+    405: { // 06:45
+        type: "blank",
+        scene: { es: "Viajes de Negocios", ca: "Viatges de Negocis" },
+        q: {
+            es: "Completa: Los viajes en avión contratados por los empleados se clasifican en el Alcance ______.",
+            ca: "Completa: Els viatges en avió contractats pels empleats es classifiquen a l'Abast ______."
+        },
+        correctAnswer: "3",
+        rewindTime: 360 // Go back to 06:00 (360 seconds)
+    }
+};
+
+function initVideoPlayerState() {
+    videoPlaybackTimer = null;
+    videoCurrentTime = 0;
+    isVideoPlaying = false;
+    triggeredStops = {};
+    updateVideoUI();
+}
+
+function toggleVideoPlayback() {
+    const playBtn = document.getElementById('ahc-video-btn-play');
+    const playIcon = document.getElementById('ahc-video-play-icon');
+    
+    if (isVideoPlaying) {
+        stopVideoPlayback();
+    } else {
+        isVideoPlaying = true;
+        if (playBtn) playBtn.textContent = "Pause";
+        if (playIcon) playIcon.style.opacity = "0";
+        
+        videoPlaybackTimer = setInterval(() => {
+            videoCurrentTime++;
+            
+            // Check if current time has an interactive stop
+            if (videoStopQuestions[videoCurrentTime] && !triggeredStops[videoCurrentTime]) {
+                triggerVideoStop(videoCurrentTime);
+            }
+            
+            if (videoCurrentTime >= videoDuration) {
+                videoCurrentTime = videoDuration;
+                stopVideoPlayback();
+                alert(currentLanguage === 'es' ? "¡Video finalizado con éxito!" : "¡Vídeo finalitzat amb èxit!");
+            }
+            
+            updateVideoUI();
+        }, 1000); // 1 second increments
+    }
+}
+
+function stopVideoPlayback() {
+    isVideoPlaying = false;
+    const playBtn = document.getElementById('ahc-video-btn-play');
+    const playIcon = document.getElementById('ahc-video-play-icon');
+    
+    if (playBtn) playBtn.textContent = "Play";
+    if (playIcon) playIcon.style.opacity = "0.65";
+    
+    if (videoPlaybackTimer) {
+        clearInterval(videoPlaybackTimer);
+        videoPlaybackTimer = null;
+    }
+}
+
+function updateVideoUI() {
+    const timeDisplay = document.getElementById('ahc-video-time');
+    const progressDisplay = document.getElementById('ahc-video-progress');
+    const sceneDisplay = document.getElementById('ahc-video-scene');
+    
+    if (timeDisplay && progressDisplay) {
+        // Format time display as MM:SS
+        const minutes = Math.floor(videoCurrentTime / 60);
+        const seconds = videoCurrentTime % 60;
+        timeDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        
+        // Progress percentage width
+        const pct = (videoCurrentTime / videoDuration) * 100;
+        progressDisplay.style.width = `${pct}%`;
+        
+        // Dynamically update the current scene label based on time range
+        if (sceneDisplay) {
+            if (videoCurrentTime < 135) {
+                sceneDisplay.textContent = currentLanguage === 'es' ? "1. Explicación Inicial" : "1. Explicació Inicial";
+            } else if (videoCurrentTime < 270) {
+                sceneDisplay.textContent = currentLanguage === 'es' ? "2. Consumo Eléctrico" : "2. Consum Elèctric";
+            } else if (videoCurrentTime < 405) {
+                sceneDisplay.textContent = currentLanguage === 'es' ? "3. Alcance de Emisiones" : "3. Abast d'Emissions";
+            } else {
+                sceneDisplay.textContent = currentLanguage === 'es' ? "4. Viajes y Reporte" : "4. Viatges i Report";
+            }
+        }
+    }
+}
+
+function triggerVideoStop(timestamp) {
+    stopVideoPlayback();
+    
+    const overlay = document.getElementById('ahc-player-overlay');
+    const questionText = document.getElementById('ahc-video-question');
+    const optionsContainer = document.getElementById('ahc-video-options');
+    
+    if (overlay && questionText && optionsContainer) {
+        const question = videoStopQuestions[timestamp];
+        questionText.textContent = question.q[currentLanguage];
+        optionsContainer.innerHTML = '';
+        
+        if (question.type === 'options' || question.type === 'boolean') {
+            question.options[currentLanguage].forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'ahc-player__option-btn';
+                btn.textContent = opt.text;
+                btn.onclick = () => submitVideoAnswer(timestamp, opt.correct);
+                optionsContainer.appendChild(btn);
+            });
+        } else if (question.type === 'blank') {
+            const group = document.createElement('div');
+            group.className = 'ahc-player__input-group';
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'ahc-player__input-text';
+            input.placeholder = currentLanguage === 'es' ? 'Ingresa el número (ej: 3)' : 'Introdueix el número (ej: 3)';
+            input.id = 'ahc-video-blank-input';
+            
+            const btn = document.createElement('button');
+            btn.className = 'btn-card ahc-player__btn-play';
+            btn.textContent = currentLanguage === 'es' ? 'Enviar' : 'Enviar';
+            btn.onclick = () => {
+                const isCorrect = input.value.trim() === question.correctAnswer;
+                submitVideoAnswer(timestamp, isCorrect);
+            };
+            
+            group.appendChild(input);
+            group.appendChild(btn);
+            optionsContainer.appendChild(group);
+        }
+        
+        overlay.classList.remove('ahc-player__overlay--hidden');
+    }
+}
+
+function submitVideoAnswer(timestamp, isCorrect) {
+    const overlay = document.getElementById('ahc-player-overlay');
+    const playerScreen = document.getElementById('ahc-player-screen');
+    
+    if (isCorrect) {
+        // Record correct completion for this stop
+        triggeredStops[timestamp] = true;
+        if (overlay) overlay.classList.add('ahc-player__overlay--hidden');
+        toggleVideoPlayback(); // Resume playback
+    } else {
+        // Penalty logic: flash red screen then rewind
+        if (playerScreen) {
+            playerScreen.classList.add('ahc-player__screen--flash-red');
+            // Remove flash animation class after completion
+            setTimeout(() => {
+                playerScreen.classList.remove('ahc-player__screen--flash-red');
+            }, 500);
+        }
+        
+        // Hide overlay, rewind time and restart playback
+        if (overlay) overlay.classList.add('ahc-player__overlay--hidden');
+        
+        const question = videoStopQuestions[timestamp];
+        videoCurrentTime = question.rewindTime; // Penalty Rewind
+        updateVideoUI();
+        
+        // Brief delay before resuming playback
+        setTimeout(() => {
+            toggleVideoPlayback();
+        }, 600);
     }
 }
 
